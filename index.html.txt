@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAUHAUS | PORTFOLIO</title>
+    <style>
+        /* =========================================
+           1. 核心设计规范 (Bauhaus System)
+        ========================================= */
+        :root {
+            --c-black: #080808;
+            --c-white: #FAFAFA;
+            --c-gray: #E0E0E0;
+            --c-blue: #0033FF; /* 高饱和包豪斯蓝 */
+            --t-fast: 0.3s ease;
+            --font-main: 'Helvetica Neue', Arial, sans-serif;
+            --border-thick: 3px solid var(--c-black);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--c-white);
+            color: var(--c-black);
+            line-height: 1.6;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* 排版与几何元素 */
+        h1, h2, h3 {
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+
+        .title-huge { font-size: clamp(3rem, 8vw, 8rem); }
+        .title-sec { font-size: clamp(2rem, 4vw, 4rem); border-bottom: var(--border-thick); padding-bottom: 0.5rem; margin-bottom: 2rem; }
+        
+        /* 极简网格容器 */
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 5%;
+        }
+
+        /* =========================================
+           2. 页面结构与组件
+        ========================================= */
+        /* 固定导航栏 */
+        nav {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            background: var(--c-white);
+            border-bottom: var(--border-thick);
+            z-index: 100;
+            transition: transform var(--t-fast);
+        }
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+        .nav-logo { font-size: 1.5rem; font-weight: 900; cursor: pointer; }
+        .nav-links { display: flex; gap: 2rem; }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--c-black);
+            font-weight: 700;
+            text-transform: uppercase;
+            position: relative;
+            cursor: pointer;
+            padding: 0.5rem 0;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 0; height: 3px; background: var(--c-blue);
+            transition: width var(--t-fast);
+        }
+        .nav-links a:hover::after { width: 100%; }
+
+        /* 顶部留白 */
+        .page-wrapper { padding-top: 120px; min-height: 100vh; }
+
+        /* 首屏 Hero 区 */
+        .hero { padding: 10vh 0; }
+        .hero p {
+            font-size: clamp(1rem, 1.5vw, 1.5rem);
+            max-width: 600px;
+            margin-top: 2rem;
+            border-left: var(--border-thick);
+            padding-left: 1.5rem;
+        }
+
+        /* 作品网格卡片 */
+        .grid-works {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 10vh;
+        }
+        
+        .card {
+            border: var(--border-thick);
+            background: var(--c-white);
+            cursor: pointer;
+            position: relative;
+            transition: all var(--t-fast);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-img-wrap {
+            border-bottom: var(--border-thick);
+            overflow: hidden;
+            aspect-ratio: 4/3;
+        }
+        
+        .card img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%); /* 默认黑白 */
+            transition: filter var(--t-fast), transform 0.5s ease;
+        }
+        
+        .card-info { padding: 1.5rem; }
+        .card-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .card-meta { font-size: 0.875rem; color: #666; text-transform: uppercase; font-weight: bold; }
+
+        /* 底部 */
+        footer {
+            border-top: var(--border-thick);
+            padding: 4rem 0;
+            text-align: center;
+            background: var(--c-black);
+            color: var(--c-white);
+        }
+
+        /* 作品详情页 (独立视图) */
+        #detail-view { display: none; padding-bottom: 10vh; }
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: transparent; border: var(--border-thick);
+            padding: 0.8rem 1.5rem; font-weight: 800; text-transform: uppercase;
+            cursor: pointer; transition: all var(--t-fast); margin-bottom: 2rem;
+        }
+        .detail-header { margin-bottom: 3rem; }
+        .detail-hero-img {
+            width: 100%; height: 60vh;
+            object-fit: cover; border: var(--border-thick);
+            margin-bottom: 3rem;
+        }
+        .detail-content {
+            display: grid; grid-template-columns: 1fr 2fr; gap: 4rem;
+        }
+        .detail-meta p { margin-bottom: 1rem; border-bottom: 1px solid var(--c-gray); padding-bottom: 0.5rem; }
+        .detail-meta strong { display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--c-blue); }
+
+        /* =========================================
+           3. 交互动效 (Interactions)
+        ========================================= */
+        /* 卡片悬浮：轻微上浮 + 边框变色 + 图片恢复色彩 */
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--c-blue);
+            box-shadow: 12px 12px 0px var(--c-blue); /* 包豪斯标志性硬阴影 */
+            z-index: 10;
+        }
+        .card:hover .card-img-wrap { border-bottom-color: var(--c-blue); }
+        .card:hover img { filter: grayscale(0%); transform: scale(1.05); }
+
+        /* 按钮与卡片点击：按压反馈 */
+        .clickable:active, .card:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0px 0px 0px var(--c-blue);
+        }
+        .btn-back:hover {
+            background: var(--c-blue); color: var(--c-white); border-color: var(--c-blue);
+        }
+
+        /* 滚动渐显动效 */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        /* 点击波纹动效 */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-anim 0.6s linear;
+            background-color: rgba(0, 51, 255, 0.3);
+            pointer-events: none;
+        }
+        @keyframes ripple-anim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .detail-content { grid-template-columns: 1fr; gap: 2rem; }
+            .nav-links { display: none; /* 移动端极简隐藏菜单，仅保留Logo作为Home键 */ }
+            .hero p { border-left: none; border-top: var(--border-thick); padding-left: 0; padding-top: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="container nav-inner">
+            <div class="nav-logo clickable" onclick="router('home')">BAUHAUS.</div>
+            <div class="nav-links">
+                <a onclick="router('home')">HOME PAGE</a>
+                <a href="#works-section">WORKS</a>
+                <a href="#about-section">MY</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-wrapper container">
+        <main id="home-view">
+            <section class="hero fade-up" id="about-section">
+                <h1 class="title-huge">DESIGN<br>IS FUNCTION.</h1>
+                <p>你好，我是JOHN DOE。一名信奉包豪斯主义的视觉设计师。摒弃一切无意义的装饰，用最纯粹的几何、网格与色彩，解决真实的商业与交互问题。</p>
+            </section>
+
+            <section id="works-section" class="fade-up">
+                <h2 class="title-sec">SELECTED WORKS</h2>
+                <div class="grid-works" id="works-grid">
+                    </div>
+            </section>
+        </main>
+
+        <main id="detail-view">
+            <button class="btn-back clickable" onclick="router('home')">
+                ← BACK TO WORKS
+            </button>
+            <div class="fade-up" id="detail-container">
+                </div>
+        </main>
+    </div>
+
+    <footer>
+        <div class="container">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">LESS IS MORE.</h2>
+            <p style="color: var(--c-gray);">hello@bauhaus-design.com | +86 100 0000 0000</p>
+        </div>
+    </footer>
+
+    <script>
+        /* =========================================
+           1. 数据层：作品集数据模拟
+        ========================================= */
+        const worksData = [
+            {
+                id: 'work-1',
+                title: 'GEOMETRIC BRANDING',
+                category: 'BRAND IDENTITY',
+                date: '2023.10',
+                image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+                concept: '利用基础的圆形与矩形重构品牌视觉语言。去除冗余的阴影和渐变，完全依赖网格系统与纯粹的高饱和对比色，实现跨媒介的高度识别性。',
+                description: '该项目为一家现代美术馆重新设计了全套视觉系统，包含Logo、导视系统与线上官网。设计过程严格遵循包豪斯网格理论，确保排版的绝对理智。'
+            },
+            {
+                id: 'work-2',
+                title: 'MINIMALIST POSTER',
+                category: 'TYPOGRAPHY',
+                date: '2023.08',
+                image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
+                concept: '字体即图像。打破传统排版层级，让无衬线粗体字直接成为海报的视觉中心主体。',
+                description: '为“2023先锋设计展”设计的系列海报。仅使用黑白两色，依靠字重的强烈对比与超大比例的负空间（留白），营造出强烈的视觉张力。'
+            },
+            {
+                id: 'work-3',
+                title: 'FUNCTIONAL APP UI',
+                category: 'UI/UX DESIGN',
+                date: '2024.01',
+                image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80',
+                concept: '功能至上。隐藏一切不必要的干扰元素，让用户的注意力完全集中于核心操作路径。',
+                description: '一款面向建筑师的效率工具APP界面设计。采用极致的扁平化设计，硬朗的直角控件配合触觉反馈，降低交互认知成本。'
+            },
+            {
+                id: 'work-4',
+                title: 'SPATIAL EXHIBITION',
+                category: 'SPATIAL DESIGN',
+                date: '2024.03',
+                image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
+                concept: '流动的几何空间。将二维的平面网格逻辑延伸至三维空间。',
+                description: '负责策划并设计的线下设计展陈列空间。运用脚手架和原色钢板作为核心展具，展现工业材料的原始美感与功能主义的结合。'
+            }
+        ];
+
+        /* =========================================
+           2. 视图渲染逻辑
+        ========================================= */
+        const worksGrid = document.getElementById('works-grid');
+        const homeView = document.getElementById('home-view');
+        const detailView = document.getElementById('detail-view');
+        const detailContainer = document.getElementById('detail-container');
+
+        // 渲染首页网格
+        function renderWorks() {
+            worksGrid.innerHTML = worksData.map(work => `
+                <div class="card fade-up" onclick="openDetail('${work.id}')">
+                    <div class="card-img-wrap">
+                        <img src="${work.image}" alt="${work.title}" loading="lazy">
+                    </div>
+                    <div class="card-info">
+                        <div class="card-title">${work.title}</div>
+                        <div class="card-meta">${work.category} / ${work.date}</div>
+                    </div>
+                </div>
+            `).join('');
+            initObserver(); // 重新绑定渐显动画
+        }
+
+        // 渲染详情页
+        function openDetail(id) {
+            const work = worksData.find(w => w.id === id);
+            if(!work) return;
+
+            detailContainer.innerHTML = `
+                <div class="detail-header">
+                    <h1 class="title-huge">${work.title}</h1>
+                </div>
+                <img class="detail-hero-img" src="${work.image}" alt="${work.title}">
+                <div class="detail-content">
+                    <div class="detail-meta">
+                        <p><strong>CATEGORY</strong>${work.category}</p>
+                        <p><strong>DATE</strong>${work.date}</p>
+                        <p><strong>CLIENT</strong>INTERNAL PROJECT</p>
+                    </div>
+                    <div class="detail-text">
+                        <h3 style="margin-bottom: 1rem; color: var(--c-blue);">CONCEPT.</h3>
+                        <p style="font-size: 1.2rem; margin-bottom: 2rem; font-weight: bold;">${work.concept}</p>
+                        <h3 style="margin-bottom: 1rem;">DESCRIPTION.</h3>
+                        <p>${work.description}</p>
+                    </div>
+                </div>
+            `;
+            router('detail');
+        }
+
+        /* =========================================
+           3. 核心功能：路由与动画交互
+        ========================================= */
+        
+        // 简易路由控制 (切换视图并平滑回到顶部)
+        function router(view) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // 简单的延迟等待平滑滚动开始后再切换DOM，避免视觉生硬
+            setTimeout(() => {
+                if (view === 'home') {
+                    homeView.style.display = 'block';
+                    detailView.style.display = 'none';
+                    initObserver(); // 切回首页重新触发动画
+                } else if (view === 'detail') {
+                    homeView.style.display = 'none';
+                    detailView.style.display = 'block';
+                    // 给详情页容器手动添加可见类，实现淡入
+                    setTimeout(() => {
+                        detailContainer.classList.add('visible');
+                    }, 50);
+                }
+            }, 100);
+        }
+
+        // 滚动渐显动效 (Intersection Observer)
+        function initObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target); // 触发后取消监听
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.fade-up').forEach(el => {
+                el.classList.remove('visible'); // 重置状态
+                observer.observe(el);
+            });
+        }
+
+        // 全局点击波纹反馈动效 (Ripple Effect)
+        document.addEventListener('mousedown', function(e) {
+            // 筛选出所有可点击元素 (卡片、按钮、链接)
+            const target = e.target.closest('.card, .clickable, .nav-links a');
+            if (!target) return;
+
+            const circle = document.createElement('span');
+            const diameter = Math.max(target.clientWidth, target.clientHeight);
+            const radius = diameter / 2;
+
+            const rect = target.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${e.clientX - rect.left - radius}px`;
+            circle.style.top = `${e.clientY - rect.top - radius}px`;
+            circle.classList.add('ripple');
+
+            // 移除旧的波纹
+            const ripple = target.querySelector('.ripple');
+            if (ripple) ripple.remove();
+
+            // 为了不破坏包豪斯的纯色方块风格，我们通过 overflow 限制波纹
+            if(window.getComputedStyle(target).position === 'static') {
+                target.style.position = 'relative';
+            }
+            target.style.overflow = 'hidden';
+            target.appendChild(circle);
+        });
+
+        // 导航栏微动效：向下滚动时隐藏，向上滚动时出现
+        let lastScrollY = window.scrollY;
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > lastScrollY && window.scrollY > 100) {
+                navbar.style.transform = 'translateY(-100%)';
+            } else {
+                navbar.style.transform = 'translateY(0)';
+            }
+            lastScrollY = window.scrollY;
+        });
+
+        // 初始化
+        renderWorks();
+
+    </script>
+</body>
+</html>
